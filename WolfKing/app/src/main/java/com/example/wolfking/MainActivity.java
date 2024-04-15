@@ -2,12 +2,16 @@ package com.example.wolfking;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
@@ -25,6 +29,8 @@ import android.provider.Settings;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.Toast;
 
@@ -49,12 +55,20 @@ public class MainActivity extends AppCompatActivity {
 
     //Vibrate
     private Vibrator vibrator;
-    int time = 200;
+    int timeShort = 200;
+    int timeLong = 500;
     int pause = 700;
-    private long[] pattern = {0, time, pause}; // Intervalo entre vibrações
-    int count = 0;
+    public String vibrations = "";
     int pressedTime = 0;
     boolean validVibration = true;
+
+    //Notification
+    private static final String CHANNEL_ID = "kingwolf";
+    private static final CharSequence CHANNEL_NAME = "King Wolf";
+    private static final String CHANNEL_DESCRIPTION = "Education";
+
+    //WebView
+    WebView webView;
 
     private final BroadcastReceiver mBroadcastReceiver1 = new BroadcastReceiver() {
         @Override
@@ -159,7 +173,16 @@ public class MainActivity extends AppCompatActivity {
         recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
         items = new ArrayList<Item>();
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        vibrator = (Vibrator) getSystemService(MainActivity.VIBRATOR_SERVICE); //Vibrador
+        vibrator = (Vibrator) getSystemService(MainActivity.VIBRATOR_SERVICE);
+        webView = (WebView) findViewById(R.id.webView);
+        // Habilitar execução de JavaScript
+        WebSettings webSettings = webView.getSettings();
+        webSettings.setJavaScriptEnabled(true);
+        // Carregar arquivo HTML local
+        webView.loadUrl("file:///android_asset/index.html");
+        webView.evaluateJavascript("vibrate()", null);
+
+        vibrator.vibrate(2000);
 
         LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver, new IntentFilter("incomingMessage"));
 
@@ -228,8 +251,7 @@ public class MainActivity extends AppCompatActivity {
             String text = intent.getStringExtra("theMessage");
             Toast.makeText(MainActivity.this, text, Toast.LENGTH_LONG).show();
             try {
-                int num = Integer.parseInt(text);
-                vibrate(num);
+                vibrate(text);
             } catch (NumberFormatException e) {
                 Log.e(TAG, "onReceive: Invalid format: " + e.getMessage());
             }
@@ -363,42 +385,41 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //Vibração
-    public void vibrate(int repeat) {
+    public void vibrate(String repeatStr) {
+
+        repeatStr = "600" + repeatStr;// Add zero in the Str
+        String[] repeatArr = repeatStr.split(" ");// Transform in String Array
+        long[] repeat = new long[repeatArr.length];// Create Array Numbers
+        for(int i = 0; i < repeatArr.length; i++) {
+            int number = Integer.parseInt(repeatArr[i]);
+            repeat[i] = number;
+        }// Add numbers in the array
+
         int alert = 500;
-        int alertTime = alert * 3;
-        int seconds = ((time + pause) * repeat) + (alertTime);
 
         vibrator.vibrate(alert); // Inicia a vibração única
-
-        mHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                pattern = new long[]{0, time, pause};
-                vibrator.vibrate(pattern, 0);
-            }
-        }, alertTime);
-        mHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                count = 0;
-                vibrator.cancel();
-            }
-        }, seconds);
+        vibrator.vibrate(repeat, -1);
     }
 
     public void resetCountAndPressedTime() {
         pressedTime = 0;
-        count = 0;
+        vibrations = "";
         validVibration = false;
     }
-
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
+        pressedTime = 0;
+
         if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
             validVibration = true;
-            count++;
+            vibrations += " " + String.valueOf(timeShort) + " " + String.valueOf(pause);
         }
-        Log.d(TAG, "onKeyUp: " + count);
+        else if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
+            validVibration = true;
+            vibrations += " " + String.valueOf(timeLong) + " " + String.valueOf(pause);
+        }
+        Log.d(TAG, "onKeyUp: " + vibrations);
+
         return super.onKeyDown(keyCode, event);
     }
 
@@ -411,26 +432,62 @@ public class MainActivity extends AppCompatActivity {
                 pressedTime++;
             }
 
-            if(pressedTime > count + 7) {
+            if(pressedTime > 10) {
                 if(validVibration) {
                     if(isBluetoothDeviceValid(mBTDevice)) {
-                        Toast.makeText(MainActivity.this, Integer.toString(count), Toast.LENGTH_LONG).show();
-                        byte[] bytes = (Integer.toString(count)).getBytes(Charset.defaultCharset());
-                        mBluetoothConnection.write(bytes);
+                        vibrations = vibrations.substring(8);
+                        //[] bytes = (vibrations).getBytes(Charset.defaultCharset());
+                        //mBluetoothConnection.write(bytes);
+                        vibrate(vibrations);
                         vibrator.vibrate(200);
                     }//If valid device
                 }//If valid vibration
                 resetCountAndPressedTime();
-                count = -1;
             }//Send message if segurar o botão volume up
 
         }
         else if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
-            resetCountAndPressedTime();
-            pressedTime++;
+
+            if(validVibration) {
+                pressedTime++;
+            }
+
+            if(pressedTime > 10) {
+                resetCountAndPressedTime();
+            }
         }
 
         Log.d(TAG, "onKeyDown: " + pressedTime);
         return super.onKeyDown(keyCode, event);
+    }
+
+    // Notification
+    public static void sendNotification(Context context, String title, String message) {
+        // Verifica se o dispositivo está rodando uma versão do Android que requer canais de notificação
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, CHANNEL_NAME,
+                    NotificationManager.IMPORTANCE_DEFAULT);
+            channel.setDescription(CHANNEL_DESCRIPTION);
+            NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
+            notificationManager.createNotificationChannel(channel);
+        }
+
+        // Cria a intent para quando a notificação for clicada
+        Intent intent = new Intent(context, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        // Cria a notificação
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
+                .setSmallIcon(R.drawable.baseline_bluetooth_24) // Ícone da notificação
+                .setContentTitle(title) // Título da notificação
+                .setContentText(message) // Conteúdo da notificação
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT) // Prioridade da notificação
+                .setContentIntent(pendingIntent) // Intent a ser executada quando a notificação for clicada
+                .setAutoCancel(true); // Cancela a notificação quando clicada
+
+        // Exibe a notificação
+        NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        notificationManager.notify(/*ID da notificação*/ 1, builder.build());
     }
 }
