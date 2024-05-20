@@ -55,11 +55,12 @@ public class MainActivity extends AppCompatActivity {
 
     //Vibrate
     private Vibrator vibrator;
-    int timeShort = 200;
-    int timeLong = 500;
-    int pause = 700;
+    int timeShort = 100;
+    int timeLong = 400;
+    int pause = 500;
     int pressedTime = 0;
     boolean validVibration = true;
+    String listClicks = "";
 
     //Notification
 //    private static final String CHANNEL_ID = "kingwolf";
@@ -237,6 +238,11 @@ public class MainActivity extends AppCompatActivity {
         public void onReceive(Context context, Intent intent) {
             String text = intent.getStringExtra("theMessage");
             Toast.makeText(MainActivity.this, text, Toast.LENGTH_LONG).show();
+            try {
+                vibrate(text);
+            } catch (NumberFormatException e) {
+                Log.e(TAG, "onReceive: Invalid format: " + e.getMessage());
+            }
         }
     };// Receive message
 
@@ -367,19 +373,43 @@ public class MainActivity extends AppCompatActivity {
     }
 
     //Vibração
-    List<Integer> listVibrations = new ArrayList<>();
-    listVibrations.add(0);
-    public void vibrate() {
-        long[] repeat = {0};// Create Array Numbers Of Repeat Vibrations
-        int alert = 500;
+    public void vibrate(String repeatStr) {
+        if(repeatStr.length() > 8) {
+            repeatStr = repeatStr.substring(8);
+        }// Controla o click a mais q tem
+        String[] repeatStrArray = repeatStr.split(" ");
+        long[] repeat = convertStringArrayToLongArray(repeatStrArray);
+
+        //Controle do tempo de vibração
+        int tim = 0;
+        for (String t : repeatStrArray) {
+            tim += Integer.parseInt(t);
+        }
+
+        mHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                byte[] bytes = (pause + " " + timeShort).getBytes(Charset.defaultCharset());
+                mBluetoothConnection.write(bytes);
+            }
+        }, tim);//Timeout, notifica que a msg foi lida
 
         // vibrator.vibrate(alert); // Inicia a vibração única
         vibrator.vibrate(repeat, -1);
     }
 
+    public static long[] convertStringArrayToLongArray(String[] stringArray) {
+        long[] longArray = new long[stringArray.length];
+        for (int i = 0; i < stringArray.length; i++) {
+            longArray[i] = Long.parseLong(stringArray[i]);
+        }
+        return longArray;
+    }
+
     public void resetCountAndPressedTime() {
         pressedTime = 0;
         validVibration = false;
+        listClicks = "";
     }
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
@@ -387,13 +417,11 @@ public class MainActivity extends AppCompatActivity {
 
         if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
             validVibration = true;
-            listVibrations.add(pause);
-            listVibrations.add(timeShort);
+            listClicks += pause+ " " + timeShort + " ";
         }
         else if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
             validVibration = true;
-            listVibrations.add(pause);
-            listVibrations.add(timeLong);
+            listClicks += pause+ " " + timeLong + " ";
         }
 
         return super.onKeyDown(keyCode, event);
@@ -402,18 +430,18 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
+        if(validVibration) {
+            pressedTime++;
+        }
 
-            if(validVibration) {
-                pressedTime++;
-            }
+        if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
 
             if(pressedTime > 10) {
                 if(validVibration) {
                     if(isBluetoothDeviceValid(mBTDevice)) {
-                        //[] bytes = (vibrations).getBytes(Charset.defaultCharset());
-                        //mBluetoothConnection.write(bytes);
-                        vibrate();
+                        byte[] bytes = (listClicks).getBytes(Charset.defaultCharset());
+                        mBluetoothConnection.write(bytes);
+                        vibrate(pause + " " + timeShort);
                     }//If valid device
                 }//If valid vibration
                 resetCountAndPressedTime();
@@ -421,10 +449,6 @@ public class MainActivity extends AppCompatActivity {
 
         }
         else if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
-
-            if(validVibration) {
-                pressedTime++;
-            }
 
             if(pressedTime > 10) {
                 resetCountAndPressedTime();

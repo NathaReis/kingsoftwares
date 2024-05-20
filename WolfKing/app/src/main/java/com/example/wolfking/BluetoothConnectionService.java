@@ -198,7 +198,7 @@ public class BluetoothConnectionService {
            String text = new String(bytes, Charset.defaultCharset());
             Log.d(TAG, "write: Writing to outputStream: " + text);
             try {
-                mmOutStream. write(bytes);
+                mmOutStream.write(bytes);
             } catch (IOException e) {
                 Log.e(TAG, "write: Error writing to outputstream. " + e.getMessage());
             }
