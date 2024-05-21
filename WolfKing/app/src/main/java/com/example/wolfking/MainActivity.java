@@ -380,20 +380,6 @@ public class MainActivity extends AppCompatActivity {
         String[] repeatStrArray = repeatStr.split(" ");
         long[] repeat = convertStringArrayToLongArray(repeatStrArray);
 
-        //Controle do tempo de vibração
-        int tim = 0;
-        for (String t : repeatStrArray) {
-            tim += Integer.parseInt(t);
-        }
-
-        mHandler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                byte[] bytes = (pause + " " + timeShort).getBytes(Charset.defaultCharset());
-                mBluetoothConnection.write(bytes);
-            }
-        }, tim);//Timeout, notifica que a msg foi lida
-
         // vibrator.vibrate(alert); // Inicia a vibração única
         vibrator.vibrate(repeat, -1);
     }
@@ -415,7 +401,7 @@ public class MainActivity extends AppCompatActivity {
     public boolean onKeyUp(int keyCode, KeyEvent event) {
         pressedTime = 0;
 
-        if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
+        if (keyCode == KeyEvent.KEYCODE_VOLUME_UP || keyCode == KeyEvent.KEYCODE_HEADSETHOOK) {
             validVibration = true;
             listClicks += pause+ " " + timeShort + " ";
         }
@@ -427,33 +413,63 @@ public class MainActivity extends AppCompatActivity {
         return super.onKeyDown(keyCode, event);
     }
 
+    public void enviarListClicks() {
+        byte[] bytes = (listClicks).getBytes(Charset.defaultCharset());
+        mBluetoothConnection.write(bytes);
+        vibrate(pause + " " + timeShort);
+    }
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if(validVibration) {
-            pressedTime++;
-        }
+        if(keyCode == KeyEvent.KEYCODE_VOLUME_UP || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
+            if(validVibration) {
+                pressedTime++;
+            }
 
-        if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
+            if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
 
-            if(pressedTime > 10) {
-                if(validVibration) {
-                    if(isBluetoothDeviceValid(mBTDevice)) {
-                        byte[] bytes = (listClicks).getBytes(Charset.defaultCharset());
-                        mBluetoothConnection.write(bytes);
-                        vibrate(pause + " " + timeShort);
-                    }//If valid device
-                }//If valid vibration
-                resetCountAndPressedTime();
-            }//Send message if segurar o botão volume up
+                if(pressedTime > 10) {
+                    if(validVibration) {
+                        if(isBluetoothDeviceValid(mBTDevice)) {
+//                            byte[] bytes = (listClicks).getBytes(Charset.defaultCharset());
+//                            mBluetoothConnection.write(bytes);
+//                            vibrate(pause + " " + timeShort);
+                            vibrate(listClicks);
+                        }//If valid device
+                    }//If valid vibration
+                    resetCountAndPressedTime();
+                }//Send message if segurar o botão volume up
 
-        }
-        else if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
+            }
+            else if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
 
-            if(pressedTime > 10) {
-                resetCountAndPressedTime();
+                if(pressedTime > 10) {
+                    resetCountAndPressedTime();
+                }
             }
         }
+        else {
+            if(validVibration) {
+                pressedTime++;
+            }
+
+            switch (keyCode) {
+                case KeyEvent.KEYCODE_HEADSETHOOK:
+
+                    if(pressedTime > 10) {
+                        if(validVibration) {
+                            if(isBluetoothDeviceValid(mBTDevice)) {
+//                                byte[] bytes = (listClicks).getBytes(Charset.defaultCharset());
+//                                mBluetoothConnection.write(bytes);
+//                                vibrate(pause + " " + timeShort);
+                                vibrate(listClicks);
+                            }//If valid device
+                        }//If valid vibration
+                        resetCountAndPressedTime();
+                    }//Send message if segurar o botão volume up
+            }
+        }
+
 
         Log.d(TAG, "onKeyDown: " + pressedTime);
         return super.onKeyDown(keyCode, event);
