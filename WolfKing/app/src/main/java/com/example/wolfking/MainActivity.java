@@ -60,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
     int pause = 500;
     int pressedTime = 0;
     boolean validVibration = true;
-    String listClicks = "";
+    String listClicks = pause+ " " + timeShort + " ";
 
     private final BroadcastReceiver mBroadcastReceiver1 = new BroadcastReceiver() {
         @Override
@@ -387,6 +387,18 @@ public class MainActivity extends AppCompatActivity {
         return longArray;
     }
 
+    public void shareClicks() {
+        if(mBluetoothConnection != null) {
+            byte[] bytes = (listClicks).getBytes(Charset.defaultCharset());
+            mBluetoothConnection.write(bytes);
+            vibrate(pause + " " + timeShort);
+//            vibrate(listClicks);
+        }
+        else {
+            Toast.makeText(MainActivity.this, "Dispositivo desconectado!", Toast.LENGTH_LONG).show();
+        }
+    }
+
     public void resetCountAndPressedTime() {
         pressedTime = 0;
         validVibration = false;
@@ -394,13 +406,14 @@ public class MainActivity extends AppCompatActivity {
     }
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
-        pressedTime = 0;
 
-        if (keyCode == KeyEvent.KEYCODE_VOLUME_UP || keyCode == KeyEvent.KEYCODE_HEADSETHOOK) {
+        if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
+            pressedTime = 0;
             validVibration = true;
             listClicks += pause+ " " + timeShort + " ";
         }
         else if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
+            pressedTime = 0;
             validVibration = true;
             listClicks += pause+ " " + timeLong + " ";
         }
@@ -408,65 +421,35 @@ public class MainActivity extends AppCompatActivity {
         return super.onKeyDown(keyCode, event);
     }
 
-    public void enviarListClicks() {
-        byte[] bytes = (listClicks).getBytes(Charset.defaultCharset());
-        mBluetoothConnection.write(bytes);
-        vibrate(pause + " " + timeShort);
-    }
-
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if(keyCode == KeyEvent.KEYCODE_VOLUME_UP || keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
+
+        if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
             if(validVibration) {
                 pressedTime++;
             }
 
-            if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
+            if(pressedTime > 10 && listClicks.length() > 0) {
+                if(validVibration) {
+                    if(isBluetoothDeviceValid(mBTDevice)) {
+                        shareClicks();
+                    }//If valid device
+                }//If valid vibration
+                resetCountAndPressedTime();
+            }//Send message if segurar o botão volume up
 
-                if(pressedTime > 10) {
-                    if(validVibration) {
-                        if(isBluetoothDeviceValid(mBTDevice)) {
-//                            byte[] bytes = (listClicks).getBytes(Charset.defaultCharset());
-//                            mBluetoothConnection.write(bytes);
-//                            vibrate(pause + " " + timeShort);
-                            vibrate(listClicks);
-                        }//If valid device
-                    }//If valid vibration
-                    resetCountAndPressedTime();
-                }//Send message if segurar o botão volume up
-
-            }
-            else if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
-
-                if(pressedTime > 10) {
-                    resetCountAndPressedTime();
-                }
-            }
         }
-        else {
+        else if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
             if(validVibration) {
                 pressedTime++;
             }
 
-            switch (keyCode) {
-                case KeyEvent.KEYCODE_HEADSETHOOK:
-
-                    if(pressedTime > 10) {
-                        if(validVibration) {
-                            if(isBluetoothDeviceValid(mBTDevice)) {
-//                                byte[] bytes = (listClicks).getBytes(Charset.defaultCharset());
-//                                mBluetoothConnection.write(bytes);
-//                                vibrate(pause + " " + timeShort);
-                                vibrate(listClicks);
-                            }//If valid device
-                        }//If valid vibration
-                        resetCountAndPressedTime();
-                    }//Send message if segurar o botão volume up
+            if(pressedTime > 10) {
+                resetCountAndPressedTime();
+                vibrate(pause + " " + timeShort);
             }
         }
 
-
-        Log.d(TAG, "onKeyDown: " + pressedTime);
         return super.onKeyDown(keyCode, event);
     }
 }
