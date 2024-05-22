@@ -62,11 +62,6 @@ public class MainActivity extends AppCompatActivity {
     boolean validVibration = true;
     String listClicks = "";
 
-    //Notification
-//    private static final String CHANNEL_ID = "kingwolf";
-//    private static final CharSequence CHANNEL_NAME = "King Wolf";
-//    private static final String CHANNEL_DESCRIPTION = "Education";
-
     private final BroadcastReceiver mBroadcastReceiver1 = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -474,34 +469,4 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "onKeyDown: " + pressedTime);
         return super.onKeyDown(keyCode, event);
     }
-
-    // Notification
-//    public static void sendNotification(Context context, String title, String message) {
-//        // Verifica se o dispositivo está rodando uma versão do Android que requer canais de notificação
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-//            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, CHANNEL_NAME,
-//                    NotificationManager.IMPORTANCE_DEFAULT);
-//            channel.setDescription(CHANNEL_DESCRIPTION);
-//            NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
-//            notificationManager.createNotificationChannel(channel);
-//        }
-//
-//        // Cria a intent para quando a notificação for clicada
-//        Intent intent = new Intent(context, MainActivity.class);
-//        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-//        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-//
-//        // Cria a notificação
-//        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
-//                .setSmallIcon(R.drawable.baseline_bluetooth_24) // Ícone da notificação
-//                .setContentTitle(title) // Título da notificação
-//                .setContentText(message) // Conteúdo da notificação
-//                .setPriority(NotificationCompat.PRIORITY_DEFAULT) // Prioridade da notificação
-//                .setContentIntent(pendingIntent) // Intent a ser executada quando a notificação for clicada
-//                .setAutoCancel(true); // Cancela a notificação quando clicada
-//
-//        // Exibe a notificação
-//        NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-//        notificationManager.notify(/*ID da notificação*/ 1, builder.build());
-//    }
 }
