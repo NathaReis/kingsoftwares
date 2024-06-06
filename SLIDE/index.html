@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="./assets/favicon.svg" type="image/x-icon">
+    <title>Kings</title>
+    <link rel="stylesheet" href="./style.css">
+    <script src="./script.js" defer></script>
+</head>
+<body>
+    <div class="container">
+        <div class="vidro">
+            <div class="buttons">
+                <label for="file" id="labelFile">MP3</label>
+                <label for="file" id="labelLink">URL</label>
+                <input type="file" id="file" class="hide">
+                <input type="text" id="linkDaMusica" class="hide" placeholder="Link da Música" onchange="getYouTubeVideoId()">
+                <button id="play" onclick="btn()">Play</button>
+            </div>
+            <div class="slide hide"></div>
+            <textarea id="letter" cols="30" rows="10" placeholder="Letra"></textarea>
+        </div>
+    </div>
+    
+    <!-- Rodar áudio no fundo -->
+    <div class="video hide"></div>
+    <audio src=""></audio>
+</body>
+</html>
