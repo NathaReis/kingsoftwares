@@ -1,45 +1,55 @@
-const $btn = document.querySelector("#play")
-const $letra = document.querySelector("#letter")
-const $linkDaMusica = document.querySelector("#linkDaMusica")
+const $select = document.querySelector("#select")
+const $play = document.querySelector("#play")
+const $letter = document.querySelector("#letter")
+const $link = document.querySelector("#link")
+const $slide = document.querySelector("#slide")
+const $buttons = document.querySelector(".buttons")
+const $video = document.querySelector("#video")
 const $audio = document.querySelector("audio")
-const $slide = document.querySelector(".slide")
-const $video = document.querySelector(".video")
-let musicaLinkAtual = ''
-let audio_valid = false
-let slide_letra = []
-let pos = 0
+const lettersMusicsTXTEndpoint = "letras.txt"
+let lettersMusicTXT = []
+let musicCurrentLink = ''
+let isValidSong = false
+let letterSlide = []
+let currentSlidePosition = 0
+let slideActiveted = false
 
-$letra.value = `No deserto de quem eu fui, eu tinha sede
-Veio Cristo e tudo se fez diferente
+const findFetchText = (res) => res.text()
+const splitFetchMusics = (res) => res.split("//")
+const fillTitles = (musics) => {
+    for(let position in musics) {
+        const phrases = musics[position].split("\n")
+        const option = document.createElement("option")
+        option.value = position
+        option.innerHTML = phrases[0]
+        $select.appendChild(option)
+    }
+    return musics
+}
+fetch(lettersMusicsTXTEndpoint)
+.then(findFetchText)
+.then(splitFetchMusics)
+.then(fillTitles)
+.then(response => lettersMusicTXT = response)
 
-Ele vê meus pecados ocultos
-O que escondo no fundo do meu coração
-Derrama em minha vida a água
-Limpa a sujeira e sacia essa sede
-O que Cristo oferece, Ele é
+function fillLetter() {
+    if($select.value) {
+        $letter.value = lettersMusicTXT[$select.value]
+    }
+    else {
+        $letter.value = ""
+    }
+}
 
-No escuro de quem eu fui, eu tinha medo
-Veio Cristo e tudo se fez diferente
+function alterHide() {
+    $slide.classList.toggle('hide')
+    $letter.classList.toggle('hide')
+    $buttons.classList.toggle('hide')
+}
 
-Ele enxerga o que vejo no escuro
-O que escondo do fundo no meu coração
-E espalha o barro que ainda faltava
-Abre a janela pra luz me encontrar
-O que Cristo oferece, Ele é
-
-Luz do Mundo, Água Viva
-Cristo, Ele é Cristo, Ele é Cristo
-
-Ele tira o pecado do mundo
-Planta a esperança na terra do meu coração
-Cristo, Pão que alimenta o faminto
-Vinho esmagado e servido na cruz para todo cansado
-O que Cristo oferece, Ele é`
-
-function play() {            
+function formatSlideLetter() {
     let res = []
-
-    res = $letra.value.split('\n\n')
+    res = $letter.value.split('\n\n')
     res = res.map(p => p.split('\n'))
     const aux = res
     res = []
@@ -48,83 +58,79 @@ function play() {
             res.push(element)
         })
     })
-
-    slide_letra = res 
-    $slide.innerHTML = slide_letra[pos]
+    return res
+}
+ 
+function play() {       
+    alterHide()
+    slideActiveted = true
+    letterSlide = formatSlideLetter()
+    renderizar()
+    apresentation()
 }
 
-const btn =  () => {
-    console.log('o')
-    if($btn.innerHTML == 'Play')
-    {
-        if($letra.value.replace(/\s+/g, '') != '') {
-            if(audio_valid) {
-                $slide.classList.toggle('hide')
-                $btn.classList.toggle('active')
-                pos = -1
-
-                play()
-
-                $btn.innerHTML = 'Voltar'
-                $audio.play()                
-            }
-            else if(musicaLinkAtual.replace(/\s+/g, '')) {
-                $slide.classList.toggle('hide')
-                $btn.classList.toggle('active')
-                pos = -1
-
-                play()
-
-                $btn.innerHTML = 'Voltar'
-                $video.innerHTML = musicaLinkAtual   
-            }
-        }
+function validFields() {
+    if($letter.value.replace(/\s+/g, '') != '') {
+        if(isValidSong) {
+            play()
+            $audio.play()                
+        }// MP3
+        else if(musicCurrentLink.replace(/\s+/g, '')) {
+            play()
+            $video.innerHTML = musicCurrentLink   
+        }// URL
         else {
-            alert('Campo(s) vazios!')
-        }
+            play()
+        }// Letter
     }
-    else 
-    {
-        $slide.classList.toggle('hide')
-        $btn.classList.toggle('active')
-        $btn.innerHTML = 'Play'
-        $audio.pause()
-        $audio.currentTime = 0
+    else {
+        alert('Sem letra!')
     }
 }
 
-const renderizar = () => {
-    $slide.innerHTML = slide_letra[pos]
+function renderizar() {
+    $slide.innerHTML = letterSlide[currentSlidePosition]
+    localStorage.setItem("letter",letterSlide[currentSlidePosition])
+}
+
+function backSlide() {
+    if(slideActiveted) {
+        localStorage.removeItem("letter")
+        musicCurrentLink = ''
+        isValidSong = false
+        letterSlide = []
+        currentSlidePosition = 0
+        slideActiveted = false
+        $audio.src = ""
+        $video.innerHTML = ""
+        alterHide()
+    }
 }
 
 const $corpo = document.querySelector('body')
 $corpo.addEventListener('keydown', e => {
-    if(e.keyCode == 37) {
-        if(pos > 0) {
-            pos--
-            renderizar()
-        }
+    const keyCode = e.keyCode
+
+    switch(keyCode) {
+        case 37: 
+            if(currentSlidePosition > 0) {
+                currentSlidePosition--
+                renderizar()
+            } 
+            break 
+        case 39:
+            if(currentSlidePosition < letterSlide.length - 1) {
+                currentSlidePosition++
+                renderizar()
+            }
+            break 
+        case 27:
+            backSlide()
+            break
     }
-    else if(e.keyCode == 39) {
-        if(pos < slide_letra.length - 1) {
-            pos++
-            renderizar()
-        }
-    }
-    // else if(e.keyCode == 27) {
-    //     if($btn.innerHTML == 'Voltar') {
-    //         btn()
-    //     }
-    // }
-    // else if(e.keyCode == 13) {
-    //     if($btn.innerHTML == 'Play') {
-    //         btn()
-    //     }
-    // }
 })
 
 const $file = document.querySelector("#file")
-
 $file.addEventListener("change", () => {
     const file = $file.files[0]
     console.log(file)
@@ -134,7 +140,7 @@ $file.addEventListener("change", () => {
         const allowedExtensions = ['mp3']
 
         if(allowedExtensions.includes(fileExtension.toLowerCase())) {
-            audio_valid = true
+            isValidSong = true
             const reader = new FileReader();
             reader.onload = function(event) {
                 $audio.src = event.target.result;
@@ -142,35 +148,33 @@ $file.addEventListener("change", () => {
             reader.readAsDataURL(file);
         }
         else {
-            audio_valid = false
+            isValidSong = false
             alert('Extensão deve ser mp3!')
         }
     }
     else {
-        audio_valid = false
+        isValidSong = false
         alert('Nenhum arquivo selecionado')
     }
 })
 
 
-function rodarMusica(link) {
+function registerMusic(link) {
     if(link) {
         setTimeout(() =>
         {
-            let iframe = `<iframe src="https://www.youtube.com/embed/${link}?autoplay=1" title="" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`
-            musicaLinkAtual = iframe
+            let iframe = `<iframe src="https://www.youtube.com/embed/${link}?autoplay=1" title="" frameborder="0" allow="autoplay; encrypted-media"></iframe>`
+            musicCurrentLink = iframe
         },1)
     }
 }
 
-
-
 function getYouTubeVideoId() {
-    const url = $linkDaMusica.value
+    const url = $link.value
     let regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
     let match = url.match(regExp);
-    const retorno = (match && match[7].length == 11) ? match[7] : false
-    rodarMusica(retorno)
+    const response = (match && match[7].length == 11) ? match[7] : false
+    registerMusic(response)
 }
 
 async function clipboard() {
@@ -182,10 +186,18 @@ async function clipboard() {
         const text = await navigator.clipboard.readText();
     
         // Define o texto no campo de entrada
-        $linkDaMusica.value = text
+        $link.value = text
+        alert("Link colado!")
+        console.log(text)
         getYouTubeVideoId()
     } 
     catch (err) {
+        alert('Área de transferÊncia com erro!')
         console.error('Falha ao ler a área de transferência: ', err);
     }
+}
+
+// SLIDE 
+function apresentation(){
+	window.open("./windows/windows.html","_blank","toolbar=yes,location=yes,directories=no, status=no, menubar=yes,scrollbars=yes, resizable=no,copyhistory=yes, width=500px,height=500px")
 }

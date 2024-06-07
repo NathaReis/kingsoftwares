@@ -15,20 +15,22 @@
                 <label for="file" id="labelFile">
                     MP3
                 </label>
-                <label for="" id="labelLink" onclick="clipboard()">
+                <label for="" id="labelLink" class="hide" onclick="clipboard()">
                     URL
                 </label>
-                <button id="play" onclick="btn()">Play</button>
+                <select id="select" onchange="fillLetter()">
+                    <option value="">Vazio</option>
+                </select>
+                <button id="play" onclick="validFields()">Play</button>
                 <input type="file" id="file" class="hide">
-                <input type="text" id="linkDaMusica" class="hide" placeholder="Link da Música" onchange="getYouTubeVideoId()">
+                <input type="text" id="link" class="hide">
             </div>
-            <div class="slide hide"></div>
+            <div id="slide" class="hide"></div>
             <textarea id="letter" cols="30" rows="10" placeholder="Cole a letra da música aqui"></textarea>
         </div>
     </div>
-    
     <!-- Rodar áudio no fundo -->
-    <div class="video hide"></div>
+    <div id="video" class=""></div>
     <audio src=""></audio>
 </body>
 </html>

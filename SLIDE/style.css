@@ -51,6 +51,15 @@
     opacity: .9;
 }
 
+#select {
+    padding: 10px;
+    border: none;
+    outline: none;
+    grid-column: span 2;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
 #play {
     background: #ddd;
     border: none;
@@ -80,6 +89,21 @@
     box-shadow: 0 0 10px #00000050;
 }
 
+#slide {
+    width: 100vw;
+    height: 100vh;
+    display: grid;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: #fff;
+    background: #0005;
+    font-size: 9rem;
+    text-shadow: 0 0 10px #0000004b;
+    font-weight: 700;
+    padding: 0 100px 0 100px;
+}
+
 
 @media (max-width: 500px) {   
     .vidro {
@@ -100,5 +124,5 @@
 }
 
 .hide {
-    display: none;
+    display: none !important;
 }
