@@ -9,6 +9,33 @@ let audio_valid = false
 let slide_letra = []
 let pos = 0
 
+$letra.value = `No deserto de quem eu fui, eu tinha sede
+Veio Cristo e tudo se fez diferente
+
+Ele vê meus pecados ocultos
+O que escondo no fundo do meu coração
+Derrama em minha vida a água
+Limpa a sujeira e sacia essa sede
+O que Cristo oferece, Ele é
+
+No escuro de quem eu fui, eu tinha medo
+Veio Cristo e tudo se fez diferente
+
+Ele enxerga o que vejo no escuro
+O que escondo do fundo no meu coração
+E espalha o barro que ainda faltava
+Abre a janela pra luz me encontrar
+O que Cristo oferece, Ele é
+
+Luz do Mundo, Água Viva
+Cristo, Ele é Cristo, Ele é Cristo
+
+Ele tira o pecado do mundo
+Planta a esperança na terra do meu coração
+Cristo, Pão que alimenta o faminto
+Vinho esmagado e servido na cruz para todo cansado
+O que Cristo oferece, Ele é`
+
 function play() {            
     let res = []
 
@@ -30,7 +57,7 @@ const btn =  () => {
     console.log('o')
     if($btn.innerHTML == 'Play')
     {
-        if($letra.value.replace(/\s+/g, '') != '' || $titulo.value.replace(/\s+/g, '')) {
+        if($letra.value.replace(/\s+/g, '') != '') {
             if(audio_valid) {
                 $slide.classList.toggle('hide')
                 $btn.classList.toggle('active')
@@ -144,4 +171,21 @@ function getYouTubeVideoId() {
     let match = url.match(regExp);
     const retorno = (match && match[7].length == 11) ? match[7] : false
     rodarMusica(retorno)
+}
+
+async function clipboard() {
+    try {
+        // Solicita permissão para acessar a área de transferência
+        await navigator.permissions.query({ name: 'clipboard-read' });
+    
+        // Lê o texto da área de transferência
+        const text = await navigator.clipboard.readText();
+    
+        // Define o texto no campo de entrada
+        $linkDaMusica.value = text
+        getYouTubeVideoId()
+    } 
+    catch (err) {
+        console.error('Falha ao ler a área de transferência: ', err);
+    }
 }
