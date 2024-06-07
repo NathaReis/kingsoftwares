@@ -13,6 +13,7 @@ let isValidSong = false
 let letterSlide = []
 let currentSlidePosition = 0
 let slideActiveted = false
+localStorage.removeItem("letter") 
 
 const findFetchText = (res) => res.text()
 const splitFetchMusics = (res) => res.split("//")
@@ -58,6 +59,8 @@ function formatSlideLetter() {
             res.push(element)
         })
     })
+    const last = res.length - 1
+    !res[last] ? res[last] = 'Fim' : res.push('Fim')
     return res
 }
  
@@ -89,8 +92,9 @@ function validFields() {
 }
 
 function renderizar() {
-    $slide.innerHTML = letterSlide[currentSlidePosition]
-    localStorage.setItem("letter",letterSlide[currentSlidePosition])
+    let letter = letterSlide[currentSlidePosition]
+    $slide.innerHTML = letter
+    localStorage.setItem("letter",letter)
 }
 
 function backSlide() {

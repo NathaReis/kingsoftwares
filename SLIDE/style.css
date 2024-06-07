@@ -34,17 +34,18 @@
 
 #labelLink, #labelFile {
     background: #ddd;
-    width: 70px;
+    grid-column: span 2;
     height: 70px;
     display: grid;
     align-items: center;
     justify-content: center;
     border-radius: 20px;
-    box-shadow: 0 0 10px #00000050;
     cursor: pointer;
     transition: .3s;
     letter-spacing: 2px;
     font-weight: 700;
+    border-bottom: 2px solid #2274aa;
+    box-shadow: 0 0 10px #00000050, 0 5px 5px #2274aaa6;
 }
 #labelLink:hover, #labelFile:hover, #play:hover {
     background: #fff;
