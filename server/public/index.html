@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="./assets/favicon.svg" type="image/x-icon">
+    <title>Kings</title>
+    <link rel="stylesheet" href="./style.css">
+    <script src="./script.js" defer></script>
+</head>
+<body>
+    <div class="container">
+        <div class="vidro">
+            <div class="buttons">
+                <label for="file" id="labelFile" class="btn">
+                    MP3
+                </label>
+                <button type="button" id="play" class="btn" onclick="validFields()">
+                    Play
+                </button>
+                <select id="select" onchange="fillLetter()">
+                    <option value="">Vazio</option>
+                </select>
+                <input type="file" id="file" class="hide">
+                <input type="text" id="link" class="hide">
+            </div>
+            <div id="slide" class="hide"></div>
+            <textarea id="letter" cols="30" rows="10" placeholder="Cole a letra da música aqui"></textarea>
+        </div>
+    </div>
+    <!-- Rodar áudio no fundo -->
+    <div id="video" class=""></div>
+    <audio src=""></audio>
+</body>
+</html>
